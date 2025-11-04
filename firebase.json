@@ -1,0 +1,44 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "masakini-ba32a",
+          "appId": "1:849352728921:android:4c1ee40a182b10b74dec48",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "masakini-ba32a",
+          "configurations": {
+            "android": "1:849352728921:android:4c1ee40a182b10b74dec48",
+            "ios": "1:849352728921:ios:47071a6c447453dc4dec48",
+            "macos": "1:849352728921:ios:47071a6c447453dc4dec48",
+            "web": "1:849352728921:web:9e5c00a88cecdf4b4dec48",
+            "windows": "1:849352728921:web:5bc715735314b6994dec48"
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8081
+    },
+    "storage": {
+      "port": 9199
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  }
+}

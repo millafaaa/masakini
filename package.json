@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "dependencies": {
+    "firebase": "^12.5.0"
+  },
+  "scripts": {
+    "sample-data": "node add_more_recipes.js"
+  }
+}

@@ -1,0 +1,39 @@
+name: masakini
+description: Aplikasi Resep Masakan Bilingual
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.15.3
+  cloud_firestore: ^4.13.6
+  firebase_storage: ^11.5.6
+  google_sign_in: ^6.1.6
+  image_picker: ^1.0.4  # Untuk foto resep/profil
+  provider: ^6.1.1  # State management
+  intl: ^0.20.2  # Bilingual
+  flutter_localizations:
+    sdk: flutter
+  share_plus: ^7.2.1  # Share ke social media
+  flutter_rating_bar: ^4.0.1  # Rating stars
+  flutter_screenutil: ^5.9.0  # Responsive dari Figma (ukuran UI)
+  # Tambah jika Figma punya SVG: flutter_svg: ^2.0.9
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  generate: true
+  uses-material-design: true
+  assets:
+    - assets/
+  # tambahkan ini jika belum ada

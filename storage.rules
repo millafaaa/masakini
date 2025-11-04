@@ -1,0 +1,56 @@
+rules_version = '2';
+
+// Firebase Storage Rules untuk Masakini Recipe App
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Function untuk cek user sudah login
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Function untuk cek user adalah pemilik file
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Function untuk validasi ukuran file (max 5MB)
+    function isValidSize() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+    
+    // Function untuk validasi tipe file gambar
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // Rules untuk folder recipes/ (foto resep)
+    // Path: recipes/{recipeId}/{fileName}
+    match /recipes/{recipeId}/{fileName} {
+      // Semua user yang login bisa READ
+      allow read: if isAuthenticated();
+      
+      // Hanya pemilik resep yang bisa WRITE/DELETE
+      allow write, delete: if isAuthenticated() 
+                            && isValidSize() 
+                            && isImage();
+    }
+    
+    // Rules untuk folder profiles/ (foto profil user)
+    // Path: profiles/{userId}/{fileName}
+    match /profiles/{userId}/{fileName} {
+      // Semua orang bisa melihat foto profil
+      allow read: if true;
+      
+      // Hanya pemilik profil yang bisa upload/update/delete foto profil
+      allow write, delete: if isOwner(userId) 
+                            && isValidSize() 
+                            && isImage();
+    }
+    
+    // Deny semua akses ke path lainnya
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

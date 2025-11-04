@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "849352728921",
+    "project_id": "masakini-ba32a",
+    "storage_bucket": "masakini-ba32a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:849352728921:android:4c1ee40a182b10b74dec48",
+        "android_client_info": {
+          "package_name": "com.example.masakini"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCk5XsupcFLkUQz640PVfvVreVo6ydegl8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
