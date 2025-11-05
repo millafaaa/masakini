@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -13,15 +14,16 @@ class AuthService {
   /// Sign up with email and password
   Future<AuthResponse> signUpWithEmail(String email, String password) async {
     try {
-      print('🔵 Signing up user: $email');
+      debugPrint('🔵 Signing up user: $email');
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
       );
-      print('✅ Sign up response - User: ${response.user?.id}, Session: ${response.session != null}');
+      debugPrint(
+          '✅ Sign up response - User: ${response.user?.id}, Session: ${response.session != null}');
       return response;
     } catch (e) {
-      print('❌ Sign up error: $e');
+      debugPrint('❌ Sign up error: $e');
       rethrow;
     }
   }
@@ -29,15 +31,16 @@ class AuthService {
   /// Sign in with email and password
   Future<AuthResponse> signInWithEmail(String email, String password) async {
     try {
-      print('🔵 Signing in user: $email');
+      debugPrint('🔵 Signing in user: $email');
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      print('✅ Sign in response - User: ${response.user?.id}, Session: ${response.session != null}');
+      debugPrint(
+          '✅ Sign in response - User: ${response.user?.id}, Session: ${response.session != null}');
       return response;
     } catch (e) {
-      print('❌ Sign in error: $e');
+      debugPrint('❌ Sign in error: $e');
       rethrow;
     }
   }
@@ -47,7 +50,7 @@ class AuthService {
     try {
       // Sign out from previous session
       await _googleSignIn.signOut();
-      
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
