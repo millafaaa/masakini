@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/recipe_model.dart';
 
@@ -93,11 +94,14 @@ class DatabaseService {
         .from('recipes_with_stats')
         .stream(primaryKey: ['id'])
         .order('created_at', ascending: false)
-        .map((data) => data.where((json) {
+        .map((data) => data
+            .where((json) {
               final ingredients = List<String>.from(json['ingredients'] ?? []);
               return selectedIngredients
                   .any((selected) => ingredients.contains(selected));
-            }).map((json) => Recipe.fromMap(json)).toList());
+            })
+            .map((json) => Recipe.fromMap(json))
+            .toList());
   }
 
   /// 👩‍🍳 Ambil resep milik user tertentu
@@ -119,20 +123,20 @@ class DatabaseService {
         .stream(primaryKey: ['id'])
         .order('created_at', ascending: false)
         .asyncMap((recipes) async {
-      // Get user's favorited recipe IDs
-      final favorites = await _supabase
-          .from('favorites')
-          .select('recipe_id')
-          .eq('user_id', userId);
+          // Get user's favorited recipe IDs
+          final favorites = await _supabase
+              .from('favorites')
+              .select('recipe_id')
+              .eq('user_id', userId);
 
-      final favoriteIds = favorites.map((f) => f['recipe_id']).toList();
+          final favoriteIds = favorites.map((f) => f['recipe_id']).toList();
 
-      // Filter recipes
-      return recipes
-          .where((recipe) => favoriteIds.contains(recipe['id']))
-          .map((json) => Recipe.fromMap(json))
-          .toList();
-    });
+          // Filter recipes
+          return recipes
+              .where((recipe) => favoriteIds.contains(recipe['id']))
+              .map((json) => Recipe.fromMap(json))
+              .toList();
+        });
   }
 
   /// 🔥 Ambil resep populer (urut berdasarkan rating_count)
@@ -142,15 +146,15 @@ class DatabaseService {
         .stream(primaryKey: ['id'])
         .order('created_at', ascending: false)
         .map((data) {
-      // Sort by rating_count in memory
-      final list = data.toList();
-      list.sort((a, b) {
-        final countA = a['rating_count'] ?? 0;
-        final countB = b['rating_count'] ?? 0;
-        return (countB as int).compareTo(countA as int);
-      });
-      return list.take(20).map((json) => Recipe.fromMap(json)).toList();
-    });
+          // Sort by rating_count in memory
+          final list = data.toList();
+          list.sort((a, b) {
+            final countA = a['rating_count'] ?? 0;
+            final countB = b['rating_count'] ?? 0;
+            return (countB as int).compareTo(countA as int);
+          });
+          return list.take(20).map((json) => Recipe.fromMap(json)).toList();
+        });
   }
 
   /// 📄 Ambil semua resep (untuk HomeScreen)
@@ -196,16 +200,16 @@ class DatabaseService {
     String? photoUrl,
   }) async {
     try {
-      print('🔵 Creating user profile for: $userId, email: $email');
+      debugPrint('🔵 Creating user profile for: $userId, email: $email');
       await _supabase.from('users').insert({
         'id': userId,
         'email': email,
         'display_name': displayName ?? email.split('@')[0],
         'photo_url': photoUrl ?? '',
       });
-      print('✅ User profile created successfully!');
+      debugPrint('✅ User profile created successfully!');
     } catch (e) {
-      print('❌ Error creating user profile: $e');
+      debugPrint('❌ Error creating user profile: $e');
       rethrow;
     }
   }
