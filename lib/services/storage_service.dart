@@ -1,21 +1,23 @@
 import 'dart:io';
-import 'dart:async';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-  /// Upload foto resep ke Firebase Storage
+  /// Upload foto resep ke Supabase Storage
   Future<String> uploadRecipeImage(File imageFile, String userId) async {
     try {
-      final ref = _storage
-          .ref()
-          .child('recipes/$userId/${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final metadata = SettableMetadata(contentType: 'image/jpeg');
-      final task = ref.putFile(imageFile, metadata);
-      // Batasi waktu upload agar tidak menggantung terlalu lama
-      await task.timeout(const Duration(seconds: 30));
-      return await ref.getDownloadURL();
+      final fileName =
+          '$userId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final bytes = await imageFile.readAsBytes();
+
+      await _supabase.storage.from('recipes').uploadBinary(
+            fileName,
+            bytes,
+            fileOptions: const FileOptions(contentType: 'image/jpeg'),
+          );
+
+      return _supabase.storage.from('recipes').getPublicUrl(fileName);
     } catch (e) {
       rethrow;
     }
@@ -24,11 +26,19 @@ class StorageService {
   /// Upload foto profil user (path: profiles/{userId}.jpg)
   Future<String> uploadProfilePhoto(String userId, File imageFile) async {
     try {
-      final ref = _storage.ref().child('profiles/$userId.jpg');
-      final metadata = SettableMetadata(contentType: 'image/jpeg');
-      final task = ref.putFile(imageFile, metadata);
-      await task.timeout(const Duration(seconds: 30));
-      return await ref.getDownloadURL();
+      final fileName = '$userId.jpg';
+      final bytes = await imageFile.readAsBytes();
+
+      await _supabase.storage.from('profiles').uploadBinary(
+            fileName,
+            bytes,
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: true, // Replace existing photo
+            ),
+          );
+
+      return _supabase.storage.from('profiles').getPublicUrl(fileName);
     } catch (e) {
       rethrow;
     }

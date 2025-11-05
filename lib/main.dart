@@ -1,51 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
-import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'providers/auth_provider.dart';
 import 'screens/splash_screen.dart';
+import 'screens/detail_recipe_screen.dart';
+import 'models/recipe_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   
-  // Connect to Firebase Emulator (untuk development tanpa billing)
-  if (kDebugMode) {
-    // Pilih host sesuai platform:
-    // - Android emulator: 10.0.2.2 (alias ke localhost PC)
-    // - Web/Windows/macOS/Linux: localhost
-    final host = kIsWeb
-        ? 'localhost'
-        : (defaultTargetPlatform == TargetPlatform.android
-            ? '10.0.2.2'
-            : 'localhost');
-    
-    try {
-      // Connect Authentication Emulator
-      await FirebaseAuth.instance.useAuthEmulator(host, 9099);
-      
-      // Connect Firestore Emulator
-      FirebaseFirestore.instance.useFirestoreEmulator(host, 8081);
-      
-      // Connect Storage Emulator
-      await FirebaseStorage.instance.useStorageEmulator(host, 9199);
-      
-      debugPrint('🔥 Firebase Emulators Connected!');
-      debugPrint('📍 Auth: http://$host:9099');
-      debugPrint('📍 Firestore: http://$host:8081');
-      debugPrint('📍 Storage: http://$host:9199');
-      debugPrint('📍 Emulator UI: http://localhost:4000');
-    } catch (e) {
-      debugPrint('⚠️ Error connecting to emulators: $e');
-    }
-  }
+  // Load environment variables
+  await dotenv.load(fileName: '.env');
+  
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
+  
+  debugPrint('✅ Supabase Initialized!');
   
   runApp(const MyApp());
 }
@@ -155,6 +132,12 @@ class MyApp extends StatelessWidget {
         ],
         locale: const Locale('id'),
         home: const SplashScreen(),
+        routes: {
+          '/detail': (context) {
+            final recipe = ModalRoute.of(context)!.settings.arguments as Recipe;
+            return DetailRecipeScreen(recipe: recipe);
+          },
+        },
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:masakini/providers/auth_provider.dart';
 import 'package:masakini/screens/home_screen.dart';
 import 'package:masakini/screens/auth/signup_screen.dart';
 
@@ -17,35 +16,71 @@ class _LoginScreenState extends State<LoginScreen> {
   final _password = TextEditingController();
   bool _loading = false;
 
-  final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
-
   Future<void> _login() async {
     if (_email.text.trim().isEmpty || _password.text.trim().isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Isi email dan password')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Isi email dan password'),
+            backgroundColor: Colors.orange,
+          ),
+        );
       }
       return;
     }
 
+    setState(() => _loading = true);
+
     try {
-      setState(() => _loading = true);
-      await _auth.signInWithEmailAndPassword(
-        email: _email.text.trim(),
-        password: _password.text.trim(),
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.signInWithEmail(
+        _email.text.trim(),
+        _password.text.trim(),
       );
 
-      if (mounted) {
+      // Wait for auth state to settle
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (mounted && authProvider.user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Login berhasil!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
+          ),
+        );
+        
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
-      }
-    } on FirebaseAuthException catch (e) {
-      if (mounted) {
+      } else if (mounted) {
+        final errorMsg = authProvider.error ?? 'Login gagal';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? 'Login gagal')),
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        String errorMsg = 'Login gagal: ';
+        if (e.toString().contains('Invalid login credentials')) {
+          errorMsg = 'Email atau password salah';
+        } else if (e.toString().contains('Email not confirmed')) {
+          errorMsg = 'Email belum dikonfirmasi. Cek inbox Anda.';
+        } else {
+          errorMsg += e.toString();
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     } finally {
@@ -57,36 +92,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loginWithGoogle() async {
     try {
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
+      setState(() => _loading = true);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.signInWithGoogle();
 
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final userCredential = await _auth.signInWithCredential(credential);
-      final user = userCredential.user;
-
-      // Simpan ke Firestore kalau belum ada
-      if (user != null) {
-        final doc = _firestore.collection('users').doc(user.uid);
-        final snapshot = await doc.get();
-        if (!snapshot.exists) {
-          await doc.set({
-            'name': user.displayName ?? '',
-            'email': user.email ?? '',
-            'photoUrl': user.photoURL ?? '',
-            'createdAt': DateTime.now().toIso8601String(),
-          });
-        }
-      }
-
-      if (mounted) {
+      if (mounted && authProvider.user != null) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else if (mounted && authProvider.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authProvider.error!)),
         );
       }
     } catch (e) {

@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Recipe {
   final String id;
   final String userId;
@@ -9,6 +7,7 @@ class Recipe {
   final String description;
   final String image;
   final String category;
+  final String cuisineType; // Indonesian, Western, Chinese, etc
   final int cookingTime; // in minutes
   final int servings;
   final String difficulty; // easy, medium, hard
@@ -17,7 +16,10 @@ class Recipe {
   final List<double> ratings;
   final List<String> reviews;
   final List<String> favorites;
-  final Timestamp createdAt;
+  final DateTime createdAt;
+
+  // Default placeholder image
+  static const String defaultImage = 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80';
 
   Recipe({
     required this.id,
@@ -28,6 +30,7 @@ class Recipe {
     required this.description,
     required this.image,
     this.category = 'Lainnya',
+    this.cuisineType = 'Indonesian',
     this.cookingTime = 30,
     this.servings = 2,
     this.difficulty = 'easy',
@@ -38,6 +41,9 @@ class Recipe {
     required this.favorites,
     required this.createdAt,
   });
+
+  /// 🔹 Get image URL with default fallback
+  String get imageUrl => image.isNotEmpty ? image : defaultImage;
 
   /// 🔹 Hitung rata-rata rating
   double get averageRating {
@@ -51,18 +57,19 @@ class Recipe {
     return favorites.contains(userId);
   }
 
-  /// 🔹 Konversi dari Firestore ke model
-  factory Recipe.fromMap(String id, Map<String, dynamic> data) {
+  /// 🔹 Konversi dari Supabase Map ke model
+  factory Recipe.fromMap(Map<String, dynamic> data) {
     return Recipe(
-      id: id,
-      userId: data['userId'] ?? '',
-      userName: data['userName'] ?? '',
-      userAvatar: data['userAvatar'] ?? '',
+      id: data['id'] ?? '',
+      userId: data['user_id'] ?? '',
+      userName: data['user_name'] ?? '',
+      userAvatar: data['user_avatar'] ?? '',
       title: data['title'] ?? 'Untitled',
       description: data['description'] ?? '',
-      image: data['image'] ?? '',
+      image: data['image'] ?? data['image_url'] ?? '',
       category: data['category'] ?? 'Lainnya',
-      cookingTime: data['cookingTime'] ?? 30,
+      cuisineType: data['cuisine_type'] ?? 'Indonesian',
+      cookingTime: data['cooking_time'] ?? 30,
       servings: data['servings'] ?? 2,
       difficulty: data['difficulty'] ?? 'easy',
       ingredients: List<String>.from(data['ingredients'] ?? []),
@@ -72,21 +79,25 @@ class Recipe {
       ),
       reviews: List<String>.from(data['reviews'] ?? []),
       favorites: List<String>.from(data['favorites'] ?? []),
-      createdAt: data['createdAt'] ?? Timestamp.now(),
+      createdAt: data['created_at'] is String
+          ? DateTime.parse(data['created_at'])
+          : DateTime.now(),
     );
   }
 
-  /// 🔹 Konversi model ke Map untuk disimpan di Firestore
+  /// 🔹 Konversi model ke Map untuk disimpan di Supabase
   Map<String, dynamic> toMap() {
     return {
-      'userId': userId,
-      'userName': userName,
-      'userAvatar': userAvatar,
+      'id': id,
+      'user_id': userId,
+      'user_name': userName,
+      'user_avatar': userAvatar,
       'title': title,
       'description': description,
-      'image': image,
+      'image_url': image,
       'category': category,
-      'cookingTime': cookingTime,
+      'cuisine_type': cuisineType,
+      'cooking_time': cookingTime,
       'servings': servings,
       'difficulty': difficulty,
       'ingredients': ingredients,
@@ -94,7 +105,7 @@ class Recipe {
       'ratings': ratings,
       'reviews': reviews,
       'favorites': favorites,
-      'createdAt': createdAt,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
@@ -108,6 +119,7 @@ class Recipe {
     String? description,
     String? image,
     String? category,
+    String? cuisineType,
     int? cookingTime,
     int? servings,
     String? difficulty,
@@ -116,7 +128,7 @@ class Recipe {
     List<double>? ratings,
     List<String>? reviews,
     List<String>? favorites,
-    Timestamp? createdAt,
+    DateTime? createdAt,
   }) {
     return Recipe(
       id: id ?? this.id,
@@ -127,6 +139,7 @@ class Recipe {
       description: description ?? this.description,
       image: image ?? this.image,
       category: category ?? this.category,
+      cuisineType: cuisineType ?? this.cuisineType,
       cookingTime: cookingTime ?? this.cookingTime,
       servings: servings ?? this.servings,
       difficulty: difficulty ?? this.difficulty,

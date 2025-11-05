@@ -1,56 +1,122 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: '', // Add this from Firebase/Google Cloud Console if needed
+  );
 
-  User? get currentUser => _auth.currentUser;
+  /// Get current user
+  User? get currentUser => _supabase.auth.currentUser;
 
-  Future<UserCredential?> signUpWithEmail(String email, String password) async {
+  /// Sign up with email and password
+  Future<AuthResponse> signUpWithEmail(String email, String password) async {
     try {
-      return await _auth.createUserWithEmailAndPassword(
-          email: email, password: password);
+      print('🔵 Signing up user: $email');
+      final response = await _supabase.auth.signUp(
+        email: email,
+        password: password,
+      );
+      print('✅ Sign up response - User: ${response.user?.id}, Session: ${response.session != null}');
+      return response;
     } catch (e) {
+      print('❌ Sign up error: $e');
       rethrow;
     }
   }
 
-  Future<UserCredential?> signInWithEmail(String email, String password) async {
+  /// Sign in with email and password
+  Future<AuthResponse> signInWithEmail(String email, String password) async {
     try {
-      return await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
+      print('🔵 Signing in user: $email');
+      final response = await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      print('✅ Sign in response - User: ${response.user?.id}, Session: ${response.session != null}');
+      return response;
     } catch (e) {
+      print('❌ Sign in error: $e');
       rethrow;
     }
   }
 
-  Future<UserCredential?> signInWithGoogle() async {
+  /// Sign in with Google (Native)
+  Future<AuthResponse?> signInWithGoogle() async {
     try {
+      // Sign out from previous session
+      await _googleSignIn.signOut();
+      
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
+
       final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
+
+      if (accessToken == null) {
+        throw 'No Access Token found.';
+      }
+      if (idToken == null) {
+        throw 'No ID Token found.';
+      }
+
+      return await _supabase.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
       );
-      return await _auth.signInWithCredential(credential);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> signOut() async {
-    await _googleSignIn.signOut();
-    await _auth.signOut();
-  }
-
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
-
-  Future<void> updateDisplayName(String name) async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      await user.updateDisplayName(name);
+  /// Sign in with Google (Web/Fallback using OAuth)
+  Future<bool> signInWithGoogleOAuth() async {
+    try {
+      await _supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.masakini://login-callback',
+      );
+      return true;
+    } catch (e) {
+      rethrow;
     }
   }
+
+  /// Sign out
+  Future<void> signOut() async {
+    try {
+      await _googleSignIn.signOut();
+      await _supabase.auth.signOut();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Listen to auth state changes
+  Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
+
+  /// Update display name in user metadata
+  Future<UserResponse> updateDisplayName(String name) async {
+    try {
+      return await _supabase.auth.updateUser(
+        UserAttributes(
+          data: {'display_name': name},
+        ),
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Get user ID
+  String? get userId => currentUser?.id;
+
+  /// Get user email
+  String? get userEmail => currentUser?.email;
+
+  /// Check if user is authenticated
+  bool get isAuthenticated => currentUser != null;
 }

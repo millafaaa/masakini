@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:masakini/models/recipe_model.dart';
-import 'package:masakini/services/firestore_service.dart';
+import 'package:masakini/services/database_service.dart';
+import 'package:masakini/providers/auth_provider.dart';
 
 class DetailRecipeScreen extends StatefulWidget {
   final Recipe recipe;
@@ -14,16 +14,17 @@ class DetailRecipeScreen extends StatefulWidget {
 }
 
 class _DetailRecipeScreenState extends State<DetailRecipeScreen> {
-  final FirestoreService _firestoreService = FirestoreService();
-  final user = FirebaseAuth.instance.currentUser;
+  final DatabaseService _databaseService = DatabaseService();
   double _rating = 0;
   final _reviewController = TextEditingController();
   bool _loading = false;
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
     final recipe = widget.recipe;
-    final isFavorite = recipe.isFavoritedBy(user?.uid ?? '');
+    final isFavorite = recipe.isFavoritedBy(user?.id ?? '');
 
     return Scaffold(
       backgroundColor: Colors.pink.shade50,
@@ -46,7 +47,7 @@ class _DetailRecipeScreenState extends State<DetailRecipeScreen> {
             ),
             onPressed: () async {
               if (user != null) {
-                await _firestoreService.toggleFavorite(recipe.id, user!.uid);
+                await _databaseService.toggleFavorite(recipe.id, user.id);
                 setState(() {});
               }
             },
@@ -62,10 +63,17 @@ class _DetailRecipeScreenState extends State<DetailRecipeScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(24),
               child: Image.network(
-                recipe.image.isNotEmpty
-                    ? recipe.image
-                    : 'https://via.placeholder.com/400x250.png?text=Masakini+Recipe',
+                recipe.imageUrl,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 250,
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: Icon(Icons.restaurant, size: 64, color: Colors.grey),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -151,42 +159,33 @@ class _DetailRecipeScreenState extends State<DetailRecipeScreen> {
             _buildSectionTitle("🧁 Review dari Pengguna"),
             const SizedBox(height: 8),
 
-            // Menampilkan review dari Firestore
-            StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance.collection('recipes').doc(recipe.id).snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const CircularProgressIndicator();
-                final data = snapshot.data!.data() as Map<String, dynamic>?;
-                final reviews = List<String>.from(data?['reviews'] ?? []);
-                final ratings = List<double>.from(
-                  (data?['ratings'] ?? []).map((r) => r is int ? r.toDouble() : r),
-                );
-
-                if (reviews.isEmpty) {
-                  return const Text(
+            // Menampilkan review dari Recipe model
+            recipe.reviews.isEmpty
+                ? const Text(
                     "Belum ada review 😋",
                     style: TextStyle(color: Colors.black54),
-                  );
-                }
-
-                return Column(
-                  children: List.generate(reviews.length, (index) {
-                    final ratingValue = ratings[index];
-                    return Card(
-                      color: Colors.white,
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: ListTile(
-                        leading: Icon(Icons.favorite, color: Colors.pink.shade300),
-                        title: Text(reviews[index]),
-                        subtitle: Text("Rating: ${ratingValue.toStringAsFixed(1)} ⭐"),
-                      ),
-                    );
-                  }),
-                );
-              },
-            ),
+                  )
+                : Column(
+                    children: List.generate(recipe.reviews.length, (index) {
+                      final ratingValue = index < recipe.ratings.length
+                          ? recipe.ratings[index]
+                          : 0.0;
+                      return Card(
+                        color: Colors.white,
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                        child: ListTile(
+                          leading: Icon(Icons.favorite,
+                              color: Colors.pink.shade300),
+                          title: Text(recipe.reviews[index]),
+                          subtitle: Text(
+                              "Rating: ${ratingValue.toStringAsFixed(1)} ⭐"),
+                        ),
+                      );
+                    }),
+                  ),
           ],
         ),
       ),
@@ -229,14 +228,17 @@ class _DetailRecipeScreenState extends State<DetailRecipeScreen> {
   }
 
   Future<void> _submitRating() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    
     if (user == null || _rating == 0) return;
     setState(() => _loading = true);
     try {
-      await _firestoreService.addRating(
+      await _databaseService.addRating(
         widget.recipe.id,
         _rating,
         _reviewController.text.trim(),
-        user!.uid,
+        user.id,
       );
       _reviewController.clear();
       _rating = 0;

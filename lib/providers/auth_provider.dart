@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
-import '../services/firestore_service.dart';
+import '../services/database_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService;
-  final FirestoreService _firestoreService = FirestoreService();
+  final DatabaseService _databaseService = DatabaseService();
 
   User? _user;
-  Map<String, dynamic>? _userProfile; // Custom Firestore profile data
+  Map<String, dynamic>? _userProfile; // Custom Supabase profile data
   bool _isLoading = true;
   String? _error;
 
@@ -24,13 +24,13 @@ class AuthProvider extends ChangeNotifier {
 
   /// ✅ Listen ke perubahan auth state (login/logout)
   void _initAuthListener() {
-    _authService.authStateChanges.listen((User? user) async {
-      _user = user;
+    _authService.authStateChanges.listen((AuthState state) async {
+      _user = state.session?.user;
       _isLoading = false;
       _error = null;
 
-      if (user != null) {
-        await _loadUserProfile(user.uid);
+      if (_user != null) {
+        await _loadUserProfile(_user!.id);
       } else {
         _userProfile = null;
       }
@@ -39,13 +39,18 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  /// ✅ Ambil profil user dari Firestore
+  /// ✅ Ambil profil user dari Supabase
   Future<void> _loadUserProfile(String userId) async {
     try {
-      final profile = await _firestoreService.getUserProfile(userId);
-      _userProfile = profile;
+      final profile = await _databaseService.getUserProfile(userId);
+      if (profile != null) {
+        _userProfile = profile;
+      } else {
+        // Profile doesn't exist yet, might be in creation process
+        _userProfile = null;
+      }
     } catch (e) {
-      _error = e.toString();
+      _error = 'Error loading profile: ${e.toString()}';
     } finally {
       notifyListeners();
     }
@@ -54,10 +59,32 @@ class AuthProvider extends ChangeNotifier {
   /// ✅ Register user baru dengan email
   Future<void> signUpWithEmail(String email, String password) async {
     _setLoading(true);
+    _error = null;
     try {
-      await _authService.signUpWithEmail(email, password);
+      final response = await _authService.signUpWithEmail(email, password);
+      if (response.user != null) {
+        // Wait a bit for auth state to settle
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Check if profile already exists (race condition prevention)
+        final existing = await _databaseService.getUserProfile(response.user!.id);
+        if (existing == null) {
+          // Create user profile in Supabase
+          await _databaseService.createUserProfile(
+            userId: response.user!.id,
+            email: email,
+            displayName: email.split('@')[0],
+          );
+          
+          // Load the newly created profile
+          await _loadUserProfile(response.user!.id);
+        }
+      } else if (response.session == null) {
+        throw Exception('Pendaftaran gagal: Tidak ada session dibuat');
+      }
     } catch (e) {
-      _setError(e.toString());
+      _setError('Pendaftaran gagal: ${e.toString()}');
+      rethrow;
     } finally {
       _setLoading(false);
     }
@@ -66,10 +93,15 @@ class AuthProvider extends ChangeNotifier {
   /// ✅ Login user dengan email
   Future<void> signInWithEmail(String email, String password) async {
     _setLoading(true);
+    _error = null;
     try {
-      await _authService.signInWithEmail(email, password);
+      final response = await _authService.signInWithEmail(email, password);
+      if (response.user == null || response.session == null) {
+        throw Exception('Login gagal: Email atau password salah');
+      }
     } catch (e) {
-      _setError(e.toString());
+      _setError('Login gagal: ${e.toString()}');
+      rethrow;
     } finally {
       _setLoading(false);
     }
@@ -78,10 +110,35 @@ class AuthProvider extends ChangeNotifier {
   /// ✅ Login menggunakan Google
   Future<void> signInWithGoogle() async {
     _setLoading(true);
+    _error = null;
     try {
-      await _authService.signInWithGoogle();
+      final response = await _authService.signInWithGoogle();
+      if (response?.user != null) {
+        final user = response!.user!;
+        
+        // Wait a bit for auth state to settle
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Check if profile exists, if not create it
+        final existing = await _databaseService.getUserProfile(user.id);
+        if (existing == null) {
+          await _databaseService.createUserProfile(
+            userId: user.id,
+            email: user.email ?? '',
+            displayName: user.userMetadata?['full_name'] ??
+                user.email?.split('@')[0] ??
+                'User',
+          );
+          
+          // Load the newly created profile
+          await _loadUserProfile(user.id);
+        }
+      } else {
+        throw Exception('Google Sign In dibatalkan');
+      }
     } catch (e) {
-      _setError(e.toString());
+      _setError('Google Sign In gagal: ${e.toString()}');
+      rethrow;
     } finally {
       _setLoading(false);
     }
@@ -99,17 +156,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// ✅ Update display name (Auth + Firestore)
+  /// ✅ Update display name (Auth + Database)
   Future<void> updateDisplayName(String name) async {
-    if (_user == null || name == _user!.displayName) return;
+    if (_user == null || name == (_userProfile?['display_name'] ?? '')) return;
 
     try {
-      await _authService.updateDisplayName(name); // Update di Firebase Auth
-      await _firestoreService.updateUserProfile(
-        _user!.uid,
+      await _authService.updateDisplayName(name); // Update di Supabase Auth
+      await _databaseService.updateUserProfile(
+        _user!.id,
         displayName: name,
-      ); // Update di Firestore
-      await _loadUserProfile(_user!.uid); // Refresh data lokal
+      ); // Update di Database
+      await _loadUserProfile(_user!.id); // Refresh data lokal
     } catch (e) {
       _setError(e.toString());
     }

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:masakini/providers/auth_provider.dart';
 import 'package:masakini/screens/main_navigation.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -14,8 +12,6 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
   
   // TextEditingController untuk handle input field
   final _nameController = TextEditingController();
@@ -39,37 +35,36 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => loading = true);
 
     try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
       final name = _nameController.text.trim();
 
       if (isLogin) {
         // Login
-        await _auth.signInWithEmailAndPassword(email: email, password: password);
+        await authProvider.signInWithEmail(email, password);
       } else {
         // Sign up - create account
-        final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-        await cred.user?.updateDisplayName(name);
-        
-        // Save user data to Firestore
-        await _firestore.collection('users').doc(cred.user!.uid).set({
-          'displayName': name,
-          'email': email,
-          'photoUrl': '',
-          'createdAt': Timestamp.now(),
-          'updatedAt': Timestamp.now(),
-        });
+        await authProvider.signUpWithEmail(email, password);
+        // Update display name after signup
+        await authProvider.updateDisplayName(name);
       }
 
-      if (mounted) {
+      if (mounted && authProvider.user != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(isLogin ? 'Login berhasil! 👋' : 'Akun berhasil dibuat! 🎉')),
         );
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigation()));
+      } else if (mounted && authProvider.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authProvider.error!)),
+        );
       }
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message ?? 'Terjadi kesalahan')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: $e')),
+        );
       }
     } finally {
       if (mounted) {
@@ -80,59 +75,23 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> _googleSignIn() async {
     try {
-      // Di emulator, provider OAuth seperti Google sering tidak didukung penuh.
-      // Saat debug, gunakan anonymous sign-in agar alur login bisa dites.
-      if (kDebugMode) {
-        await _auth.signInAnonymously();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Masuk anonim untuk pengujian di emulator')),
-          );
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const MainNavigation()),
-          );
-        }
-        return;
-      }
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
-
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final userCred = await _auth.signInWithCredential(credential);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.signInWithGoogle();
       
-      // Save/update Google user in Firestore
-      if (userCred.user != null) {
-        final userDoc = _firestore.collection('users').doc(userCred.user!.uid);
-        final docSnapshot = await userDoc.get();
-        
-        if (!docSnapshot.exists) {
-          // New user - create profile
-          await userDoc.set({
-            'displayName': userCred.user!.displayName ?? 'User',
-            'email': userCred.user!.email ?? '',
-            'photoUrl': userCred.user!.photoURL ?? '',
-            'createdAt': Timestamp.now(),
-            'updatedAt': Timestamp.now(),
-          });
-        }
-      }
-      
-      if (mounted) {
+      if (mounted && authProvider.user != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login dengan Google berhasil! 👋')),
         );
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainNavigation()));
+      } else if (mounted && authProvider.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authProvider.error!)),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal login dengan Google')),
+          SnackBar(content: Text('Gagal login dengan Google: $e')),
         );
       }
     }

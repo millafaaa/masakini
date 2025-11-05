@@ -18,7 +18,7 @@ class RecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId = Provider.of<AuthProvider>(context).user?.uid;
+    final userId = Provider.of<AuthProvider>(context).user?.id;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),

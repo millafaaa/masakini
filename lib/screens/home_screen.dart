@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/recipe_model.dart';
 import '../providers/auth_provider.dart';
-import '../services/firestore_service.dart';
+import '../services/database_service.dart';
 import 'detail_recipe_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,7 +13,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final FirestoreService _firestoreService = FirestoreService();
+  final DatabaseService _databaseService = DatabaseService();
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
         automaticallyImplyLeading: false, // Remove back button
       ),
       body: StreamBuilder<List<Recipe>>(
-        stream: _firestoreService.getAllRecipes(),
+        stream: _databaseService.getAllRecipes(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: recipes.length,
             itemBuilder: (context, index) {
               final recipe = recipes[index];
-              final isFavorite = recipe.isFavoritedBy(user?.uid ?? '');
+              final isFavorite = recipe.isFavoritedBy(user?.id ?? '');
 
               return GestureDetector(
                 onTap: () {
@@ -124,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       );
                                       return;
                                     }
-                                    await _firestoreService.toggleFavorite(recipe.id, user.uid);
+                                    await _databaseService.toggleFavorite(recipe.id, user.id);
                                   },
                                 ),
                               ],

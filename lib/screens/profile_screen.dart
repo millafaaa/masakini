@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/recipe_model.dart';
-import '../services/firestore_service.dart';
+import '../services/database_service.dart';
 import '../services/storage_service.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/recipe_card.dart';
@@ -19,7 +19,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final FirestoreService _firestoreService = FirestoreService();
+  final DatabaseService _databaseService = DatabaseService();
   final StorageService _storageService = StorageService();
   final ImagePicker _picker = ImagePicker();
   Map<String, dynamic>? _userProfile;
@@ -33,9 +33,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final userId = authProvider.user?.uid;
+    final userId = authProvider.user?.id;
     if (userId != null) {
-      final profile = await _firestoreService.getUserProfile(userId);
+      final profile = await _databaseService.getUserProfile(userId);
       setState(() => _userProfile = profile);
     }
   }
@@ -52,15 +52,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = authProvider.user;
     if (user == null) return;
 
-    String photoUrl = _userProfile?['photoUrl'] ?? '';
+    String photoUrl = _userProfile?['photo_url'] ?? '';
     if (_newProfilePhoto != null) {
-      photoUrl = await _storageService.uploadProfilePhoto(user.uid, _newProfilePhoto!);
+      photoUrl = await _storageService.uploadProfilePhoto(user.id, _newProfilePhoto!);
     }
 
     try {
-      await authProvider.updateDisplayName(newName ?? user.displayName ?? '');
-      await _firestoreService.updateUserProfile(
-        user.uid,
+      await authProvider.updateDisplayName(newName ?? _userProfile?['display_name'] ?? '');
+      await _databaseService.updateUserProfile(
+        user.id,
         displayName: newName,
         photoUrl: photoUrl,
       );
@@ -80,9 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _showEditDialog() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final currentName = _userProfile?['displayName'] ??
-        authProvider.user?.displayName ??
-        '';
+    final currentName = _userProfile?['display_name'] ?? '';
     final nameController = TextEditingController(text: currentName);
 
     showDialog(
@@ -98,11 +96,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 radius: 50,
                 backgroundImage: _newProfilePhoto != null
                     ? FileImage(_newProfilePhoto!) as ImageProvider
-                    : ((_userProfile?['photoUrl'] as String?)?.isNotEmpty == true
-                        ? NetworkImage(_userProfile!['photoUrl'] as String) as ImageProvider
+                    : ((_userProfile?['photo_url'] as String?)?.isNotEmpty == true
+                        ? NetworkImage(_userProfile!['photo_url'] as String) as ImageProvider
                         : null),
                 child: (_newProfilePhoto == null &&
-                        ((_userProfile?['photoUrl'] as String?)?.isEmpty ?? true))
+                        ((_userProfile?['photo_url'] as String?)?.isEmpty ?? true))
                     ? const Icon(Icons.person, size: 50, color: Colors.grey)
                     : null,
               ),
@@ -150,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () async {
               Navigator.pop(context);
               try {
-                await _firestoreService.deleteRecipe(recipeId);
+                await _databaseService.deleteRecipe(recipeId);
                 if (!mounted) return;
                 ScaffoldMessenger.of(this.context)
                     .showSnackBar(const SnackBar(content: Text('Resep berhasil dihapus')));
@@ -187,8 +185,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final displayName =
-        _userProfile?['displayName'] ?? user.displayName ?? user.email ?? 'Pengguna';
-    final photoUrl = _userProfile?['photoUrl'] ?? user.photoURL ?? '';
+        _userProfile?['display_name'] ?? user.email ?? 'Pengguna';
+    final photoUrl = _userProfile?['photo_url'] ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -293,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               title: 'Resep Saya',
               icon: Icons.restaurant_menu,
               child: StreamBuilder<List<Recipe>>(
-                stream: _firestoreService.getUserRecipes(user.uid),
+                stream: _databaseService.getUserRecipes(user.id),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -349,7 +347,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               title: 'Favorit',
               icon: Icons.favorite,
               child: StreamBuilder<List<Recipe>>(
-                stream: _firestoreService.getUserFavorites(user.uid),
+                stream: _databaseService.getUserFavorites(user.id),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());

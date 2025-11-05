@@ -2,10 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/recipe_model.dart';
 import 'package:masakini/providers/auth_provider.dart';
-import 'package:masakini/services/firestore_service.dart';
+import 'package:masakini/services/database_service.dart';
 import 'package:masakini/services/storage_service.dart';
 
 class AddRecipeScreen extends StatefulWidget {
@@ -50,7 +49,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
   String? _selectedCategory;
 
   final _picker = ImagePicker();
-  final _firestoreService = FirestoreService();
+  final _databaseService = DatabaseService();
   final _storageService = StorageService();
 
   Future<void> _pickImage() async {
@@ -135,20 +134,20 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
 
       String imageUrl = '';
       if (_image != null) {
-        imageUrl = await _storageService.uploadRecipeImage(_image!, user.uid);
+        imageUrl = await _storageService.uploadRecipeImage(_image!, user.id);
       } else {
         // Default image jika tidak ada foto
         imageUrl = 'https://via.placeholder.com/400x300?text=No+Image';
       }
 
       // Get user profile for userName and userAvatar
-      final userProfile = await _firestoreService.getUserProfile(user.uid);
-      final userName = userProfile?['displayName'] ?? user.displayName ?? user.email ?? 'Anonymous';
-      final userAvatar = userProfile?['photoUrl'] ?? user.photoURL ?? '';
+      final userProfile = await _databaseService.getUserProfile(user.id);
+      final userName = userProfile?['display_name'] ?? user.email ?? 'Anonymous';
+      final userAvatar = userProfile?['photo_url'] ?? '';
 
       final recipe = Recipe(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: user.uid,
+        userId: user.id,
         userName: userName,
         userAvatar: userAvatar,
         title: _titleController.text.trim(),
@@ -165,10 +164,10 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
         ratings: [],
         reviews: [],
         favorites: [],
-        createdAt: Timestamp.now(),
+        createdAt: DateTime.now(),
       );
 
-      await _firestoreService.addRecipe(recipe);
+      await _databaseService.addRecipe(recipe);
 
       // Close loading dialog
       if (mounted) {
