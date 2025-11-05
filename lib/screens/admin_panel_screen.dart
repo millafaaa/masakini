@@ -10,7 +10,8 @@ class AdminPanelScreen extends StatefulWidget {
   State<AdminPanelScreen> createState() => _AdminPanelScreenState();
 }
 
-class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerProviderStateMixin {
+class _AdminPanelScreenState extends State<AdminPanelScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -106,11 +107,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
             Text(
               'Dashboard Overview',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 24),
-            
+
             // Statistics Cards
             GridView.count(
               crossAxisCount: 2,
@@ -146,18 +147,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Quick Actions
             Text(
               'Quick Actions',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 16),
-            
+
             ListTile(
               leading: const Icon(Icons.person_add, color: Colors.blue),
               title: const Text('Add New User'),
@@ -165,9 +166,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => _showAddUserDialog(),
             ),
-            
+
             const Divider(),
-            
+
             ListTile(
               leading: const Icon(Icons.delete_sweep, color: Colors.red),
               title: const Text('Clean Old Logs'),
@@ -175,9 +176,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => _cleanOldLogs(),
             ),
-            
+
             const Divider(),
-            
+
             ListTile(
               leading: const Icon(Icons.backup, color: Colors.green),
               title: const Text('Backup Database'),
@@ -229,8 +230,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                     child: Text(
                       'Total Users: ${users.length}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                   ElevatedButton.icon(
@@ -247,12 +248,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                 itemBuilder: (context, index) {
                   final user = users[index];
                   final isAdmin = user['role'] == 'admin';
-                  
+
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: isAdmin ? Colors.deepPurple : Colors.blue,
+                        backgroundColor:
+                            isAdmin ? Colors.deepPurple : Colors.blue,
                         child: Icon(
                           isAdmin ? Icons.admin_panel_settings : Icons.person,
                           color: Colors.white,
@@ -274,11 +277,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                                   isAdmin ? 'Admin' : 'User',
                                   style: const TextStyle(fontSize: 10),
                                 ),
-                                backgroundColor: isAdmin 
-                                    ? Colors.deepPurple.withOpacity(0.2)
-                                    : Colors.blue.withOpacity(0.2),
+                                backgroundColor: isAdmin
+                                    ? Colors.deepPurple.withValues(alpha: 0.2)
+                                    : Colors.blue.withValues(alpha: 0.2),
                                 padding: EdgeInsets.zero,
-                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
                               ),
                             ],
                           ),
@@ -312,7 +316,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                               children: [
                                 Icon(Icons.delete, size: 20, color: Colors.red),
                                 SizedBox(width: 8),
-                                Text('Delete', style: TextStyle(color: Colors.red)),
+                                Text('Delete',
+                                    style: TextStyle(color: Colors.red)),
                               ],
                             ),
                           ),
@@ -379,8 +384,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                 Text(
                   'Manage Recipes',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 Text(
                   'Total: ${recipes.length}',
@@ -389,78 +394,81 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Recipe List
             ...recipes.map((recipe) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    recipe['image'] ?? 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80',
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: 60,
-                      height: 60,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.restaurant_menu),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        recipe['image'] ??
+                            'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800&q=80',
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 60,
+                          height: 60,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.restaurant_menu),
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      recipe['title'] ?? 'Untitled',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(
+                          'Category: ${recipe['category'] ?? 'N/A'} | Cuisine: ${recipe['cuisine_type'] ?? 'N/A'}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        Text(
+                          'By: ${recipe['user_name'] ?? 'Unknown'}',
+                          style:
+                              const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          _editRecipe(recipe);
+                        } else if (value == 'delete') {
+                          _deleteRecipe(recipe);
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, size: 18),
+                              SizedBox(width: 8),
+                              Text('Edit'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, size: 18, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Delete',
+                                  style: TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                title: Text(
-                  recipe['title'] ?? 'Untitled',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 4),
-                    Text(
-                      'Category: ${recipe['category'] ?? 'N/A'} | Cuisine: ${recipe['cuisine_type'] ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    Text(
-                      'By: ${recipe['user_name'] ?? 'Unknown'}',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                trailing: PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _editRecipe(recipe);
-                    } else if (value == 'delete') {
-                      _deleteRecipe(recipe);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 18),
-                          SizedBox(width: 8),
-                          Text('Edit'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 18, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )),
+                )),
           ],
         );
       },
@@ -532,11 +540,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
         Text(
           'App Settings',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 24),
-        
+
         // Theme Settings
         Card(
           child: Column(
@@ -566,9 +574,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
             ],
           ),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Coming Soon Features
         Card(
           child: Column(
@@ -579,23 +587,29 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
                 child: Text(
                   'Coming Soon Features',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
               const Divider(height: 1),
-              _buildComingSoonItem('📊 Advanced Analytics', 'Detailed usage statistics'),
-              _buildComingSoonItem('🔔 Push Notifications', 'Notify users about new recipes'),
-              _buildComingSoonItem('💬 Comments System', 'Users can comment on recipes'),
-              _buildComingSoonItem('🏆 Achievement Badges', 'Reward active users'),
-              _buildComingSoonItem('📱 Mobile App', 'Native iOS & Android apps'),
-              _buildComingSoonItem('🤖 AI Recipe Generator', 'Generate recipes with AI'),
+              _buildComingSoonItem(
+                  '📊 Advanced Analytics', 'Detailed usage statistics'),
+              _buildComingSoonItem(
+                  '🔔 Push Notifications', 'Notify users about new recipes'),
+              _buildComingSoonItem(
+                  '💬 Comments System', 'Users can comment on recipes'),
+              _buildComingSoonItem(
+                  '🏆 Achievement Badges', 'Reward active users'),
+              _buildComingSoonItem(
+                  '📱 Mobile App', 'Native iOS & Android apps'),
+              _buildComingSoonItem(
+                  '🤖 AI Recipe Generator', 'Generate recipes with AI'),
             ],
           ),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // About
         Card(
           child: ListTile(
@@ -611,7 +625,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
   }
 
   // Helper Widgets
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color) {
     return Card(
       elevation: 4,
       child: Padding(
@@ -651,7 +666,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
       subtitle: Text(description),
       trailing: Chip(
         label: const Text('Soon', style: TextStyle(fontSize: 10)),
-        backgroundColor: Colors.orange.withOpacity(0.2),
+        backgroundColor: Colors.orange.withValues(alpha: 0.2),
         padding: EdgeInsets.zero,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
@@ -682,15 +697,17 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
   String _formatTimestamp(dynamic timestamp) {
     if (timestamp == null) return 'Unknown time';
     try {
-      final dt = timestamp is String ? DateTime.parse(timestamp) : timestamp as DateTime;
+      final dt = timestamp is String
+          ? DateTime.parse(timestamp)
+          : timestamp as DateTime;
       final now = DateTime.now();
       final difference = now.difference(dt);
-      
+
       if (difference.inMinutes < 1) return 'Just now';
       if (difference.inHours < 1) return '${difference.inMinutes}m ago';
       if (difference.inDays < 1) return '${difference.inHours}h ago';
       if (difference.inDays < 7) return '${difference.inDays}d ago';
-      
+
       return '${dt.day}/${dt.month}/${dt.year}';
     } catch (e) {
       return 'Invalid date';
@@ -704,7 +721,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
       final recipesCount = await _supabase.from('recipes').select();
       final ratingsCount = await _supabase.from('ratings').select();
       final favoritesCount = await _supabase.from('favorites').select();
-      
+
       return {
         'totalUsers': usersCount.length,
         'totalRecipes': recipesCount.length,
@@ -712,7 +729,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
         'totalFavorites': favoritesCount.length,
       };
     } catch (e) {
-      print('Error getting statistics: $e');
+      debugPrint('Error getting statistics: $e');
       return {};
     }
   }
@@ -725,7 +742,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
           .order('created_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error getting users: $e');
+      debugPrint('Error getting users: $e');
       return [];
     }
   }
@@ -740,21 +757,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
           .limit(50);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error getting activity logs: $e');
+      debugPrint('Error getting activity logs: $e');
       return [];
     }
   }
 
   Future<List<Map<String, dynamic>>> _getAllRecipes() async {
     try {
-      final response = await _supabase
-          .from('recipes')
-          .select('''
+      final response = await _supabase.from('recipes').select('''
             *,
             users!inner(display_name)
-          ''')
-          .order('created_at', ascending: false);
-      
+          ''').order('created_at', ascending: false);
+
       // Flatten the user data
       return List<Map<String, dynamic>>.from(response.map((recipe) {
         final Map<String, dynamic> flatRecipe = Map.from(recipe);
@@ -765,7 +779,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
         return flatRecipe;
       }));
     } catch (e) {
-      print('Error getting recipes: $e');
+      debugPrint('Error getting recipes: $e');
       return [];
     }
   }
@@ -790,9 +804,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
     try {
       await _supabase
           .from('users')
-          .update({'role': newRole})
-          .eq('id', user['id']);
-      
+          .update({'role': newRole}).eq('id', user['id']);
+
       if (mounted) {
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
@@ -810,11 +823,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
 
   void _editRecipe(Map<String, dynamic> recipe) {
     final titleController = TextEditingController(text: recipe['title']);
-    final descriptionController = TextEditingController(text: recipe['description']);
+    final descriptionController =
+        TextEditingController(text: recipe['description']);
     final categoryController = TextEditingController(text: recipe['category']);
-    final cuisineController = TextEditingController(text: recipe['cuisine_type']);
-    final difficultyController = TextEditingController(text: recipe['difficulty']);
-    final cookingTimeController = TextEditingController(text: recipe['cooking_time']?.toString() ?? '');
+    final cuisineController =
+        TextEditingController(text: recipe['cuisine_type']);
+    final difficultyController =
+        TextEditingController(text: recipe['difficulty']);
+    final cookingTimeController =
+        TextEditingController(text: recipe['cooking_time']?.toString() ?? '');
 
     showDialog(
       context: context,
@@ -883,30 +900,33 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
           ),
           FilledButton(
             onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
               try {
-                await _supabase
-                    .from('recipes')
-                    .update({
-                      'title': titleController.text,
-                      'description': descriptionController.text,
-                      'category': categoryController.text,
-                      'cuisine_type': cuisineController.text,
-                      'difficulty': difficultyController.text,
-                      'cooking_time': int.tryParse(cookingTimeController.text),
-                      'updated_at': DateTime.now().toIso8601String(),
-                    })
-                    .eq('id', recipe['id']);
-                
+                // Close dialog first
+                navigator.pop();
+
+                await _supabase.from('recipes').update({
+                  'title': titleController.text,
+                  'description': descriptionController.text,
+                  'category': categoryController.text,
+                  'cuisine_type': cuisineController.text,
+                  'difficulty': difficultyController.text,
+                  'cooking_time': int.tryParse(cookingTimeController.text),
+                  'updated_at': DateTime.now().toIso8601String(),
+                }).eq('id', recipe['id']);
+
                 if (mounted) {
-                  Navigator.pop(context);
                   setState(() {});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Recipe updated successfully')),
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                        content: Text('Recipe updated successfully')),
                   );
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(content: Text('Error: $e')),
                   );
                 }
@@ -924,7 +944,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Recipe'),
-        content: Text('Are you sure you want to delete "${recipe['title']}"? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete "${recipe['title']}"? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -932,23 +953,25 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
           ),
           FilledButton(
             onPressed: () async {
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
               try {
-                await _supabase
-                    .from('recipes')
-                    .delete()
-                    .eq('id', recipe['id']);
-                
+                // Close dialog first
+                navigator.pop();
+
+                await _supabase.from('recipes').delete().eq('id', recipe['id']);
+
                 if (mounted) {
-                  Navigator.pop(context);
                   setState(() {});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Recipe deleted successfully')),
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                        content: Text('Recipe deleted successfully')),
                   );
                 }
               } catch (e) {
                 if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(content: Text('Error: $e')),
                   );
                 }
@@ -980,7 +1003,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
               // TODO: Implement user deletion
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Delete user feature coming soon')),
+                const SnackBar(
+                    content: Text('Delete user feature coming soon')),
               );
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -1025,7 +1049,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> with SingleTickerPr
       applicationVersion: '1.0.0',
       applicationIcon: const Icon(Icons.restaurant_menu, size: 48),
       children: [
-        const Text('A modern recipe sharing platform built with Flutter and Supabase.'),
+        const Text(
+            'A modern recipe sharing platform built with Flutter and Supabase.'),
         const SizedBox(height: 16),
         const Text('© 2025 Masakini. All rights reserved.'),
       ],
