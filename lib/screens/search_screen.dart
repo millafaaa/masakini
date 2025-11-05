@@ -13,37 +13,94 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderStateMixin {
+class _SearchScreenState extends State<SearchScreen>
+    with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
   final DatabaseService _databaseService = DatabaseService();
   final List<String> _selectedIngredients = [];
-  
+
   late TabController _tabController;
-  
+
   String _currentQuery = '';
   String? _selectedCategory;
   String? _selectedCuisineType;
   String? _selectedDifficulty;
 
   final List<String> _commonIngredients = [
-    'ayam', 'daging sapi', 'daging kambing', 'ikan', 'udang', 'cumi', 'telur',
-    'bayam', 'kangkung', 'wortel', 'kol', 'brokoli', 'kentang', 'tomat',
-    'bawang merah', 'bawang putih', 'bawang bombay', 'cabai', 'jahe', 'kunyit',
-    'garam', 'gula', 'merica', 'kecap manis', 'kecap asin', 'saus tiram',
-    'santan', 'kelapa', 'beras', 'mie', 'tempe', 'tahu', 'keju', 'susu',
-    'tepung', 'roti', 'pasta', 'nasi', 'daun bawang', 'seledri', 'jagung',
+    'ayam',
+    'daging sapi',
+    'daging kambing',
+    'ikan',
+    'udang',
+    'cumi',
+    'telur',
+    'bayam',
+    'kangkung',
+    'wortel',
+    'kol',
+    'brokoli',
+    'kentang',
+    'tomat',
+    'bawang merah',
+    'bawang putih',
+    'bawang bombay',
+    'cabai',
+    'jahe',
+    'kunyit',
+    'garam',
+    'gula',
+    'merica',
+    'kecap manis',
+    'kecap asin',
+    'saus tiram',
+    'santan',
+    'kelapa',
+    'beras',
+    'mie',
+    'tempe',
+    'tahu',
+    'keju',
+    'susu',
+    'tepung',
+    'roti',
+    'pasta',
+    'nasi',
+    'daun bawang',
+    'seledri',
+    'jagung',
   ];
-  
+
   final List<String> _categories = [
-    'Semua', 'Nasi', 'Daging', 'Ayam', 'Ikan', 'Sup', 'Sayur', 'Mi', 'Snack', 'Dessert',
+    'Semua',
+    'Nasi',
+    'Daging',
+    'Ayam',
+    'Ikan',
+    'Sup',
+    'Sayur',
+    'Mi',
+    'Snack',
+    'Dessert',
   ];
 
   final List<String> _cuisineTypes = [
-    'Semua', 'Indonesian', 'Western', 'Chinese', 'Japanese', 'Korean', 'Thai', 'Indian', 'Italian', 'Mexican',
+    'Semua',
+    'Indonesian',
+    'Western',
+    'Chinese',
+    'Japanese',
+    'Korean',
+    'Thai',
+    'Indian',
+    'Italian',
+    'Mexican',
   ];
 
   final List<String> _difficulties = [
-    'Semua', 'easy', 'medium', 'hard',
+    'Semua',
+    'easy',
+    'medium',
+    'hard',
   ];
 
   @override
@@ -176,8 +233,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   itemCount: _cuisineTypes.length,
                   itemBuilder: (context, index) {
                     final type = _cuisineTypes[index];
-                    final isSelected = _selectedCuisineType == type || 
-                                     (type == 'Semua' && _selectedCuisineType == null);
+                    final isSelected = _selectedCuisineType == type ||
+                        (type == 'Semua' && _selectedCuisineType == null);
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: FilterChip(
@@ -185,10 +242,11 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                         selected: isSelected,
                         onSelected: (selected) {
                           setState(() {
-                            _selectedCuisineType = type == 'Semua' ? null : type;
+                            _selectedCuisineType =
+                                type == 'Semua' ? null : type;
                           });
                         },
-                        selectedColor: Colors.orange.withOpacity(0.3),
+                        selectedColor: Colors.orange.withValues(alpha: 0.3),
                         checkmarkColor: Colors.orange,
                       ),
                     );
@@ -218,13 +276,13 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   Text(
                     'Pilih Bahan-Bahan',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   if (_selectedIngredients.isNotEmpty)
                     Chip(
                       label: Text('${_selectedIngredients.length} dipilih'),
-                      backgroundColor: Colors.orange.withOpacity(0.2),
+                      backgroundColor: Colors.orange.withValues(alpha: 0.2),
                     ),
                 ],
               ),
@@ -237,7 +295,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                       label: Text(ingredient),
                       deleteIcon: const Icon(Icons.close, size: 18),
                       onDeleted: () => _onIngredientToggled(ingredient),
-                      backgroundColor: Colors.orange.withOpacity(0.2),
+                      backgroundColor: Colors.orange.withValues(alpha: 0.2),
                     );
                   }).toList(),
                 ),
@@ -280,7 +338,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, -2),
                 ),
@@ -312,25 +370,25 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         Text(
           'Filter Lanjutan',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 16),
-        
+
         // Category Filter
         Text(
           'Kategori',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: _categories.map((category) {
-            final isSelected = _selectedCategory == category || 
-                             (category == 'Semua' && _selectedCategory == null);
+            final isSelected = _selectedCategory == category ||
+                (category == 'Semua' && _selectedCategory == null);
             return FilterChip(
               label: Text(category),
               selected: isSelected,
@@ -339,28 +397,28 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   _selectedCategory = category == 'Semua' ? null : category;
                 });
               },
-              selectedColor: Colors.orange.withOpacity(0.3),
+              selectedColor: Colors.orange.withValues(alpha: 0.3),
               checkmarkColor: Colors.orange,
             );
           }).toList(),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Cuisine Type Filter
         Text(
           'Tipe Masakan',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: _cuisineTypes.map((type) {
-            final isSelected = _selectedCuisineType == type || 
-                             (type == 'Semua' && _selectedCuisineType == null);
+            final isSelected = _selectedCuisineType == type ||
+                (type == 'Semua' && _selectedCuisineType == null);
             return FilterChip(
               label: Text(type),
               selected: isSelected,
@@ -369,44 +427,47 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   _selectedCuisineType = type == 'Semua' ? null : type;
                 });
               },
-              selectedColor: Colors.orange.withOpacity(0.3),
+              selectedColor: Colors.orange.withValues(alpha: 0.3),
               checkmarkColor: Colors.orange,
             );
           }).toList(),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Difficulty Filter
         Text(
           'Tingkat Kesulitan',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: _difficulties.map((difficulty) {
-            final isSelected = _selectedDifficulty == difficulty || 
-                             (difficulty == 'Semua' && _selectedDifficulty == null);
+            final isSelected = _selectedDifficulty == difficulty ||
+                (difficulty == 'Semua' && _selectedDifficulty == null);
             return FilterChip(
-              label: Text(difficulty == 'Semua' ? difficulty : difficulty.toUpperCase()),
+              label: Text(difficulty == 'Semua'
+                  ? difficulty
+                  : difficulty.toUpperCase()),
               selected: isSelected,
               onSelected: (selected) {
                 setState(() {
-                  _selectedDifficulty = difficulty == 'Semua' ? null : difficulty;
+                  _selectedDifficulty =
+                      difficulty == 'Semua' ? null : difficulty;
                 });
               },
-              selectedColor: Colors.orange.withOpacity(0.3),
+              selectedColor: Colors.orange.withValues(alpha: 0.3),
               checkmarkColor: Colors.orange,
             );
           }).toList(),
         ),
-        
+
         const SizedBox(height: 32),
-        
+
         // Apply Filters Button
         SizedBox(
           width: double.infinity,
@@ -442,7 +503,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
             ),
           );
         }
-        
+
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(
             child: Column(
@@ -461,43 +522,49 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
 
         // Filter by category
         if (_selectedCategory != null) {
-          recipes = recipes.where((recipe) => 
-            recipe.category.toLowerCase() == _selectedCategory!.toLowerCase()
-          ).toList();
+          recipes = recipes
+              .where((recipe) =>
+                  recipe.category.toLowerCase() ==
+                  _selectedCategory!.toLowerCase())
+              .toList();
         }
 
         // Filter by cuisine type
         if (_selectedCuisineType != null) {
-          recipes = recipes.where((recipe) => 
-            recipe.cuisineType.toLowerCase() == _selectedCuisineType!.toLowerCase()
-          ).toList();
+          recipes = recipes
+              .where((recipe) =>
+                  recipe.cuisineType.toLowerCase() ==
+                  _selectedCuisineType!.toLowerCase())
+              .toList();
         }
 
         // Filter by difficulty
         if (_selectedDifficulty != null) {
-          recipes = recipes.where((recipe) => 
-            recipe.difficulty.toLowerCase() == _selectedDifficulty!.toLowerCase()
-          ).toList();
+          recipes = recipes
+              .where((recipe) =>
+                  recipe.difficulty.toLowerCase() ==
+                  _selectedDifficulty!.toLowerCase())
+              .toList();
         }
 
         // Filter by search query (title or description)
         if (_currentQuery.isNotEmpty) {
-          recipes = recipes.where((recipe) =>
-            recipe.title.toLowerCase().contains(_currentQuery) ||
-            recipe.description.toLowerCase().contains(_currentQuery) ||
-            recipe.category.toLowerCase().contains(_currentQuery) ||
-            recipe.cuisineType.toLowerCase().contains(_currentQuery)
-          ).toList();
+          recipes = recipes
+              .where((recipe) =>
+                  recipe.title.toLowerCase().contains(_currentQuery) ||
+                  recipe.description.toLowerCase().contains(_currentQuery) ||
+                  recipe.category.toLowerCase().contains(_currentQuery) ||
+                  recipe.cuisineType.toLowerCase().contains(_currentQuery))
+              .toList();
         }
 
         // Filter by ingredients
         if (_selectedIngredients.isNotEmpty) {
           recipes = recipes.where((recipe) {
             return _selectedIngredients.every((selectedIngredient) =>
-              recipe.ingredients.any((ingredient) =>
-                ingredient.toLowerCase().contains(selectedIngredient.toLowerCase())
-              )
-            );
+                recipe.ingredients.any((ingredient) => ingredient
+                    .toLowerCase()
+                    .contains(selectedIngredient.toLowerCase())));
           }).toList();
         }
 
@@ -508,9 +575,11 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
               children: [
                 const Icon(Icons.search_off, size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
-                const Text('Tidak ada resep yang cocok 😔', style: TextStyle(fontSize: 18)),
+                const Text('Tidak ada resep yang cocok 😔',
+                    style: TextStyle(fontSize: 18)),
                 const SizedBox(height: 8),
-                const Text('Coba pencarian lain', style: TextStyle(color: Colors.grey)),
+                const Text('Coba pencarian lain',
+                    style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: _clearFilters,
@@ -567,7 +636,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                       height: 200,
                       color: Colors.grey[300],
                       child: const Center(
-                        child: Icon(Icons.restaurant, size: 64, color: Colors.grey),
+                        child: Icon(Icons.restaurant,
+                            size: 64, color: Colors.grey),
                       ),
                     );
                   },
@@ -576,9 +646,10 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -601,7 +672,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.orange,
                       borderRadius: BorderRadius.circular(20),
@@ -618,7 +690,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                 ),
               ],
             ),
-            
+
             // Content
             Padding(
               padding: const EdgeInsets.all(16),
@@ -649,7 +721,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                     children: [
                       Chip(
                         label: Text(recipe.category),
-                        backgroundColor: Colors.pink.withOpacity(0.1),
+                        backgroundColor: Colors.pink.withValues(alpha: 0.1),
                         labelStyle: const TextStyle(fontSize: 12),
                         padding: EdgeInsets.zero,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -662,7 +734,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                       const SizedBox(width: 12),
-                      Icon(Icons.local_fire_department, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.local_fire_department,
+                          size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
                         recipe.difficulty.toUpperCase(),
